@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Login TÍA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    background: #e60000;
+    margin: 0;
+    font-family: Arial;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-box {
+    background: white;
+    width: 350px;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,.3);
+}
+
+.login-box img {
+    width: 120px;
+    margin-bottom: 10px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 2px solid #e60000;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #e60000;
+    border: none;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+}
+button:hover {
+    background: #b30000;
+}
+#error {
+    color: #b30000;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+    <img src="https://www.sucursales24.com.co/wp-content/uploads/2021/04/Almacenes-Tia-logo.jpg">
+    <h2>Iniciar Sesión</h2>
+
+    <input type="text" id="user" placeholder="Usuario">
+    <input type="password" id="pass" placeholder="Contraseña">
+
+    <button onclick="login()">Ingresar</button>
+
+    <p id="error"></p>
+</div>
+
+<script>
+// Usuario y contraseña simple (puedo hacer uno con BD si quieres)
+const USER = "victoria";
+const PASS = "12345";
+
+function login() {
+    const u = document.getElementById("user").value;
+    const p = document.getElementById("pass").value;
+
+    if (u === USER && p === PASS) {
+        localStorage.setItem("login", "ok");
+        window.location.href = "panel.html";
+    } else {
+        document.getElementById("error").innerText = "Usuario o contraseña incorrectos";
+    }
+}
+// Si ya está logueado, entra directo
+if (localStorage.getItem("login") === "ok") {
+    window.location.href = "panel.html";
+}
+</script>
+
+</body>
+</html>

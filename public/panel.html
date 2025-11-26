@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TÍA Productos</title>
+
+<style>
+
+:root {
+    --rojo: #e60000;
+    --rojo-oscuro: #b30000;
+    --negro: #0c0c0c;
+    --gris: #f3f3f3;
+    --blanco: #ffffff;
+    --gris-oscuro: #444444;
+}
+
+body {
+    margin: 0;
+    background: var(--gris);
+    font-family: Arial;
+}
+
+/* HEADER */
+header {
+    background: var(--rojo);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: white;
+    box-shadow: 0px 4px 10px rgba(0,0,0,.3);
+}
+header img {
+    height: 70px;
+}
+header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* CONTENEDOR */
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* BOTÓN LOGOUT */
+#logout {
+    background: black;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    float: right;
+    cursor: pointer;
+}
+
+/* BUSCADOR */
+#buscador {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--rojo);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* FORMULARIO */
+.form-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 6px solid var(--rojo);
+    box-shadow: 0 3px 10px rgba(0,0,0,.2);
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--rojo);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+/* BOTONES */
+.btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.btn-red { background: var(--rojo); color: white; }
+.btn-red:hover { background: var(--rojo-oscuro); }
+
+.btn-edit { background: var(--rojo); color:white; }
+.btn-delete { background: var(--gris-oscuro); color:white; }
+
+/* GRID */
+.grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+    gap: 15px;
+}
+.card {
+    background: white;
+    border: 3px solid var(--rojo);
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.3);
+}
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+/* MODAL DEL CARRITO */
+#modalCarrito {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    width: 450px;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.cerrar {
+    background: var(--rojo);
+    padding: 8px 15px;
+    color: white;
+    float: right;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#listaCarrito div {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <img src="https://sostenibilidad.tia.com.ec/wordpress/wp-content/uploads/2023/05/logo_tia.png">
+    <h1>Panel de Productos</h1>
+    <div id="logout" onclick="logout()">Cerrar Sesión</div>
+</header>
+
+<div class="container">
+
+    <input type="text" id="buscador" placeholder="Buscar producto...">
+
+    <button class="btn btn-red" onclick="mostrarCarrito()">🛒 Carrito 
+        <span id="cartCount">0</span>
+    </button>
+
+  <div class="form-panel">
+    <input type="text" id="id" placeholder="ID (solo editar)">
+    
+    <input type="text" id="nombre" placeholder="Nombre del producto">
+
+    <input type="number" id="precio" placeholder="Precio">
+
+    <!-- SELECT para categoría con flecha -->
+    <select id="categoria">
+        <option value="">Seleccione una categoría</option>
+        <option value="alimentos">Alimentos 🥫</option>
+        <option value="bebidas">Bebidas 🥤</option>
+        <option value="limpieza">Limpieza 🧴</option>
+        <option value="hogar">Hogar 🏠</option>
+        <option value="otros">Otros 📦</option>
+    </select>
+
+    <!-- URL imagen -->
+    <input type="text" id="imagen" placeholder="URL de imagen" oninput="vistaPrevia()">
+
+    <!-- Imagen vista previa -->
+    <div style="text-align:center; margin-bottom:10px;">
+        <img id="previewImg" src="" style="width:140px; height:140px; object-fit:cover; border-radius:10px; border:2px solid #e60000; display:none;">
+    </div>
+
+    <textarea id="descripcion" placeholder="Descripción"></textarea>
+
+    <button class="btn btn-red" onclick="crearProducto()">Guardar</button>
+  <button class="btn btn-edit" id="btnActualizar" style="display:none;" onclick="actualizarProducto()">Actualizar</button>
+</div>
+<div class="grid" id="productosContainer"></div>
+
+
+<!-- ========== MODAL CARRITO ========== -->
+<div id="modalCarrito">
+    <div class="modal-content">
+        <div class="cerrar" onclick="cerrarCarrito()">Cerrar</div>
+        <h2>🛒 Carrito</h2>
+        <div id="listaCarrito"></div>
+        <h3>Total: $<span id="totalCarrito">0</span></h3>
+
+        <button class="btn btn-delete" onclick="vaciarCarrito()">Vaciar carrito</button>
+    </div>
+</div>
+
+<script>
+const API = "http://localhost:3000/api/tia";
+let carrito = [];
+
+/* ========= LOGIN PROTECT ========= */
+if (localStorage.getItem("login") !== "ok") {
+    window.location.href = "index.html";
+}
+
+/* ========= LOGOUT ========= */
+function logout() {
+    localStorage.removeItem("login");
+    window.location.href = "index.html";
+}
+function vistaPrevia() {
+    const url = imagen.value.trim();
+
+    if (url === "") {
+        previewImg.style.display = "none";
+        return;
+    }
+
+    previewImg.src = url;
+    previewImg.style.display = "block";
+}
+
+/* ========= CRUD ========= */
+async function cargarProductos() {
+    const res = await fetch(API);
+    const data = await res.json();
+    renderProductos(data);
+}
+
+function renderProductos(lista) {
+    const cont = document.getElementById("productosContainer");
+    cont.innerHTML = "";
+    lista.forEach(p => {
+        cont.innerHTML += `
+        <div class="card">
+            <img src="${p.imagen}">
+            <h3>${p.nombre}</h3>
+            <p>Precio: $${p.precio}</p>
+            <button class="btn btn-red" onclick="agregarCarrito('${p._id}','${p.nombre}',${p.precio})">Añadir</button>
+            <button class="btn btn-edit" onclick="llenar('${p._id}')">Editar</button>
+            <button class="btn btn-delete" onclick="eliminarProducto('${p._id}')">Eliminar</button>
+        </div>`;
+    });
+}
+
+async function crearProducto() {
+    const data = obtener();
+
+    const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    if (!res.ok) {
+        alert("Error al guardar");
+        return;
+    }
+
+    // Limpiar formulario
+    limpiarFormulario();
+
+    // Recargar productos
+    await cargarProductos();
+}
+
+async function llenar(id) {
+    const res = await fetch(`${API}/${id}`);
+    const p = await res.json();
+
+    id.value = p._id;
+    nombre.value = p.nombre;
+    precio.value = p.precio;
+    categoria.value = p.categoria;
+    imagen.value = p.imagen;
+    descripcion.value = p.descripcion;
+
+    // Mostrar vista previa
+    if (p.imagen) {
+        previewImg.src = p.imagen;
+        previewImg.style.display = "block";
+    }
+
+    // ⭐ Mostrar botón actualizar
+    document.getElementById("btnActualizar").style.display = "inline-block";
+
+    // ⭐ Ocultar botón guardar
+    document.querySelector("button[onclick='crearProducto()']").style.display = "none";
+}
+
+async function actualizarProducto() {
+    const idVal = document.getElementById("id").value;
+    const data = obtener();
+
+    await fetch(`${API}/${idVal}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    });
+
+    limpiarFormulario();
+    cargarProductos();
+
+    // Mostrar el botón guardar otra vez
+    document.querySelector("button[onclick='crearProducto()']").style.display = "inline-block";
+
+    // Ocultar botón actualizar
+    document.getElementById("btnActualizar").style.display = "none";
+}
+
+
+async function eliminarProducto(id) {
+    await fetch(`${API}/${id}`,{ method:"DELETE" });
+    cargarProductos();
+}
+function limpiarFormulario() {
+    id.value = "";
+    nombre.value = "";
+    precio.value = "";
+    categoria.value = "";
+    imagen.value = "";
+    descripcion.value = "";
+
+    previewImg.src = "";
+    previewImg.style.display = "none";
+
+    // Ocultar actualizar
+    btnActualizar.style.display = "none";
+
+    // Mostrar guardar
+    document.querySelector("button[onclick='crearProducto()']").style.display = "inline-block";
+}
+
+function obtener() {
+    return {
+        nombre: nombre.value,
+        precio: parseFloat(precio.value),
+        categoria: categoria.value,
+        imagen: imagen.value,
+        descripcion: descripcion.value
+    };
+}
+
+/* ========= BUSCADOR ========= */
+document.getElementById("buscador").addEventListener("input", async e => {
+    const text = e.target.value.toLowerCase();
+    const res = await fetch(API);
+    const data = await res.json();
+
+    renderProductos(data.filter(p => 
+        p.nombre.toLowerCase().includes(text)
+    ));
+});
+
+/* ========= CARRITO ========= */
+function agregarCarrito(id,nombre,precio){
+    carrito.push({id,nombre,precio});
+    document.getElementById("cartCount").innerText = carrito.length;
+}
+
+function mostrarCarrito() {
+    const lista = document.getElementById("listaCarrito");
+    lista.innerHTML = "";
+    let total = 0;
+
+    carrito.forEach((p,i)=>{
+        lista.innerHTML += `
+        <div>
+            ${p.nombre} - $${p.precio}
+            <button onclick="quitar(${i})">X</button>
+        </div>`;
+        total += p.precio;
+    });
+
+    document.getElementById("totalCarrito").innerText = total;
+    document.getElementById("modalCarrito").style.display = "flex";
+}
+
+function cerrarCarrito() {
+    document.getElementById("modalCarrito").style.display = "none";
+}
+
+function quitar(i) {
+    carrito.splice(i,1);
+    mostrarCarrito();
+    document.getElementById("cartCount").innerText = carrito.length;
+}
+
+function vaciarCarrito() {
+    carrito = [];
+    mostrarCarrito();
+    document.getElementById("cartCount").innerText = "0";
+}
+
+cargarProductos();
+</script>
+
+</body>
+</html>
